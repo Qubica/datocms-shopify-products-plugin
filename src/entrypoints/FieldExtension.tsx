@@ -1,9 +1,9 @@
-import { RenderFieldExtensionCtx } from 'datocms-plugin-sdk';
-import { Canvas } from 'datocms-react-ui';
-import Value from '../components/Value';
-import Empty from '../components/Empty';
-import { Product } from '../utils/ShopifyClient';
-import get from 'lodash-es/get';
+import { RenderFieldExtensionCtx } from "datocms-plugin-sdk";
+import { Canvas } from "datocms-react-ui";
+import Value from "../components/Value";
+import Empty from "../components/Empty";
+import { Product } from "../utils/ShopifyClient";
+import get from "lodash-es/get";
 
 type PropTypes = {
   ctx: RenderFieldExtensionCtx;
@@ -17,10 +17,10 @@ export default function FieldExtension({ ctx }: PropTypes) {
   let shopifyHandle;
 
   switch (fieldType) {
-    case 'json':
+    case "json":
       shopifyHandle = rawValue && JSON.parse(rawValue).handle;
       break;
-    case 'string':
+    case "string":
       shopifyHandle = rawValue;
       break;
 
@@ -31,7 +31,7 @@ export default function FieldExtension({ ctx }: PropTypes) {
   const handleSelect = (product: Product) => {
     ctx.setFieldValue(
       ctx.fieldPath,
-      fieldType === 'json' ? JSON.stringify(product) : product.handle,
+      fieldType === "json" ? JSON.stringify(product) : product.id
     );
   };
 

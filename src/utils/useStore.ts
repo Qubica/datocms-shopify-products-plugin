@@ -1,9 +1,9 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import produce from 'immer';
-import ShopifyClient, { Product } from './ShopifyClient';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import produce from "immer";
+import ShopifyClient, { Product } from "./ShopifyClient";
 
-export type Status = 'loading' | 'success' | 'error';
+export type Status = "loading" | "success" | "error";
 
 export type State = {
   query: string;
@@ -18,6 +18,7 @@ export type State = {
     status: Status;
     products: Product[] | null;
   };
+  fetchProductById(client: ShopifyClient, id: string): Promise<void>;
   fetchProductByHandle(client: ShopifyClient, handle: string): Promise<void>;
   fetchProductsMatching(client: ShopifyClient, query: string): Promise<void>;
 };
@@ -30,7 +31,7 @@ const useStore = create(
       };
 
       return {
-        query: '',
+        query: "",
         products: {},
         searches: {},
         getProduct(handle: string) {
@@ -39,7 +40,7 @@ const useStore = create(
           return {
             status: selectedProduct?.status
               ? selectedProduct.status
-              : 'loading',
+              : "loading",
             product: selectedProduct?.result,
           };
         },
@@ -47,7 +48,7 @@ const useStore = create(
           const state = get() as State;
 
           const search = state.searches[state.query] || {
-            status: 'loading',
+            status: "loading",
             result: [],
           };
 
@@ -57,14 +58,34 @@ const useStore = create(
             products: search.result?.map((id: string) =>
               state.products[id]?.result
                 ? state.products[id]?.result
-                : undefined,
+                : undefined
             ),
           };
+        },
+        async fetchProductById(client: ShopifyClient, id: string) {
+          set((state) => {
+            state.products[id] = state.products[id] || { result: null };
+            state.products[id].status = "loading";
+          });
+
+          try {
+            const product = await client.productById(id);
+
+            set((state) => {
+              state.products[id].result = product;
+              state.products[id].status = "success";
+            });
+          } catch (e) {
+            set((state) => {
+              state.products[id].result = null;
+              state.products[id].status = "error";
+            });
+          }
         },
         async fetchProductByHandle(client: ShopifyClient, handle: string) {
           set((state) => {
             state.products[handle] = state.products[handle] || { result: null };
-            state.products[handle].status = 'loading';
+            state.products[handle].status = "loading";
           });
 
           try {
@@ -72,19 +93,19 @@ const useStore = create(
 
             set((state) => {
               state.products[handle].result = product;
-              state.products[handle].status = 'success';
+              state.products[handle].status = "success";
             });
           } catch (e) {
             set((state) => {
               state.products[handle].result = null;
-              state.products[handle].status = 'error';
+              state.products[handle].status = "error";
             });
           }
         },
         async fetchProductsMatching(client: ShopifyClient, query: string) {
           set((state) => {
             state.searches[query] = state.searches[query] || { result: [] };
-            state.searches[query].status = 'loading';
+            state.searches[query].status = "loading";
             state.query = query;
           });
 
@@ -92,7 +113,7 @@ const useStore = create(
             const products = await client.productsMatching(query);
 
             set((state) => {
-              state.searches[query].status = 'success';
+              state.searches[query].status = "success";
               state.searches[query].result = products.map((p) => p.handle);
 
               products.forEach((product) => {
@@ -103,7 +124,7 @@ const useStore = create(
             });
           } catch (e) {
             set((state) => {
-              state.searches[query].status = 'error';
+              state.searches[query].status = "error";
               state.searches[query].result = null;
             });
           }
@@ -111,9 +132,9 @@ const useStore = create(
       };
     },
     {
-      name: 'datocms-plugin-shopify-product',
-    },
-  ),
+      name: "datocms-plugin-shopify-product",
+    }
+  )
 );
 
 export default useStore;

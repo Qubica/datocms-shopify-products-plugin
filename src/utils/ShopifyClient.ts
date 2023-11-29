@@ -1,4 +1,4 @@
-import { ValidConfig } from '../types';
+import { ValidConfig } from "../types";
 
 export type Product = {
   id: string;
@@ -18,7 +18,7 @@ export type Product = {
         node: {
           src: string;
         };
-      },
+      }
     ];
   };
 };
@@ -60,13 +60,13 @@ const productFragment = `
 `;
 
 const normalizeProduct = (product: any): Product => {
-  if (!product || typeof product !== 'object') {
-    throw new Error('Invalid product');
+  if (!product || typeof product !== "object") {
+    throw new Error("Invalid product");
   }
 
   return {
     ...product,
-    imageUrl: product.images.edges[0]?.node.src || '',
+    imageUrl: product.images.edges[0]?.node.src || "",
   };
 };
 
@@ -80,7 +80,7 @@ export default class ShopifyClient {
   constructor({
     storefrontAccessToken,
     shopifyDomain,
-  }: Pick<ValidConfig, 'shopifyDomain' | 'storefrontAccessToken'>) {
+  }: Pick<ValidConfig, "shopifyDomain" | "storefrontAccessToken">) {
     this.storefrontAccessToken = storefrontAccessToken;
     this.shopifyDomain = shopifyDomain;
   }
@@ -103,6 +103,21 @@ export default class ShopifyClient {
     return normalizeProducts(response.products);
   }
 
+  async productById(id: string) {
+    const response = await this.fetch({
+      query: `
+        query getProduct($id: ID!) {
+          product(id: $id) {
+            ${productFragment}
+          }
+        }
+      `,
+      variables: { id },
+    });
+
+    return normalizeProduct(response.product);
+  }
+
   async productByHandle(handle: string) {
     const response = await this.fetch({
       query: `
@@ -122,22 +137,22 @@ export default class ShopifyClient {
     const res = await fetch(
       `https://${this.shopifyDomain}.myshopify.com/api/graphql`,
       {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Storefront-Access-Token': this.storefrontAccessToken,
+          "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token": this.storefrontAccessToken,
         },
         body: JSON.stringify(requestBody),
-      },
+      }
     );
 
     if (res.status !== 200) {
       throw new Error(`Invalid status code: ${res.status}`);
     }
 
-    const contentType = res.headers.get('content-type');
+    const contentType = res.headers.get("content-type");
 
-    if (!contentType || !contentType.includes('application/json')) {
+    if (!contentType || !contentType.includes("application/json")) {
       throw new Error(`Invalid content type: ${contentType}`);
     }
 
